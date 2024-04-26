@@ -1,6 +1,6 @@
 {
-  "appName": "example app",
-  "description": "minimal alt1 webpack/ts example test app",
+  "appName": "Citadel Watch",
+  "description": "Relays clan citadel messages to an external server.",
   "appUrl": "./index.html",
   "configUrl": "./appconfig.json",
   "iconUrl": "./icon.png",
@@ -10,7 +10,7 @@
   "minHeight": 180,
   "maxWidth": 1000,
   "maxHeight": 1000,
-  "requestHandlers": [ ],
-  "activators": [	],
+  "requestHandlers": [],
+  "activators": [],
   "permissions": "pixel,overlay"
 }
