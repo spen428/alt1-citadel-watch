@@ -10,27 +10,20 @@ app.use(express.json());
 app.use(cors("http://localhost"));
 
 const secrets = JSON.parse(fs.readFileSync("secrets.json", "utf8"));
-
 if (!secrets || !secrets.channelId || !secrets.discordBotToken) {
   throw new Error("Missing secrets.json");
 }
 
 app.post("/send-message", async (req, res) => {
-  const { messageContent } = req.body;
-
   const url = `https://discord.com/api/v9/channels/${secrets.channelId}/messages`;
-
+  const body = { content: req.body.messageContent };
   const headers = {
     Authorization: `Bot ${secrets.discordBotToken}`,
     "Content-Type": "application/json",
   };
 
-  const data = {
-    content: messageContent,
-  };
-
   try {
-    await axios.post(url, data, { headers });
+    await axios.post(url, body, { headers });
     res.status(200).send("Message sent successfully!");
   } catch (error) {
     console.error("Error sending message:", error.response.data);

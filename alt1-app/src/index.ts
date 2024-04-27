@@ -6,44 +6,29 @@ import ChatBoxReader, { ChatLine } from "@alt1/chatbox";
 
 import axios from "axios";
 
-const MOST_RECENTLY_FORWARDED_LINE_KEY = "mostRecentlyForwardedLine";
+const CAPTURE_INTERVAL_MS = 2000;
 
-const output = document.getElementById("output");
+const logOutputElement = document.getElementById("output");
 const chatBoxReader = new ChatBoxReader();
 
 function writeLog(message: string) {
-  output.insertAdjacentHTML("beforeend", `<div>${message}</div>`);
+  logOutputElement.insertAdjacentHTML("beforeend", `<div>${message}</div>`);
 }
 
 function writeError(message: string) {
-  output.insertAdjacentHTML(
+  logOutputElement.insertAdjacentHTML(
     "beforeend",
     `<div style="color: red;">${message}</div>`,
   );
 }
 
-a1lib.PasteInput.listen(
-  (img) => {
-    processChatBox(img);
-  },
-  (err, errid) => {
-    writeError(errid + " " + err);
-  },
-);
-
-// noinspection JSUnusedGlobalSymbols
-export function capture() {
+function captureAndProcessChatBox() {
   if (!window.alt1) {
-    a1lib.PasteInput.fileDialog().showPicker();
     return;
   }
 
   const img = a1lib.captureHoldFullRs();
   processChatBox(img);
-}
-
-function hasBeenForwarded(line: string): boolean {
-  return localStorage.getItem(MOST_RECENTLY_FORWARDED_LINE_KEY) === line;
 }
 
 function forwardLineToDiscord(line: string) {
@@ -52,23 +37,13 @@ function forwardLineToDiscord(line: string) {
   const headers = { "Content-Type": "application/json" };
   axios
     .post(url, body, { headers })
-    .then(() => localStorage.setItem(MOST_RECENTLY_FORWARDED_LINE_KEY, line))
-    .catch((error) =>
-      writeError(`Error forwarding message to discord: ${error}`),
-    );
+    .catch((error) => writeError(`Error forwarding message: ${error}`));
 }
 
 function processChatLines(chatLines: ChatLine[]) {
-  const linesNewestFirst = chatLines
+  chatLines
     .filter((line) => line.text.includes("[Clan System]"))
-    .reverse();
-  for (const line of linesNewestFirst) {
-    if (hasBeenForwarded(line.text)) {
-      break;
-    }
-
-    forwardLineToDiscord(line.text);
-  }
+    .forEach((line) => forwardLineToDiscord(line.text));
 }
 
 function processChatBox(img: a1lib.ImgRef) {
@@ -85,8 +60,13 @@ function processChatBox(img: a1lib.ImgRef) {
   processChatLines(chatLines);
 }
 
+export function showFilePicker() {
+  a1lib.PasteInput.fileDialog().showPicker();
+}
+
 if (window.alt1) {
   alt1.identifyAppUrl("./appconfig.json");
+  setInterval(() => captureAndProcessChatBox(), CAPTURE_INTERVAL_MS);
 } else {
   const addAppUrl = `alt1://addapp/${new URL("./appconfig.json", document.location.href).href}`;
   writeLog(
@@ -94,4 +74,15 @@ if (window.alt1) {
   );
 }
 
-writeLog(`<div onclick='TestApp.capture()'>Click to capture if on alt1</div>`);
+a1lib.PasteInput.listen(
+  (img) => {
+    processChatBox(img);
+  },
+  (err, errid) => {
+    writeError(errid + " " + err);
+  },
+);
+
+writeLog(
+  `<div onclick='TestApp.showFilePicker()'>Click to select a test image</div>`,
+);
