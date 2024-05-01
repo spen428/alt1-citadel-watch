@@ -2,12 +2,23 @@
 <html>
   <head>
     <style>
+      html {
+        background-color: dimgray;
+      }
       .forcehidden {
-        display: none;
+        width: 0;
+        height: 0;
+        overflow: hidden;
       }
     </style>
   </head>
   <body>
+    <canvas
+      id="canvas"
+      style="position: absolute; right: 5px; top: 5px"
+      width="600"
+      height="400"
+    ></canvas>
     <div id="output"></div>
     <pre id="log"></pre>
     <script src="./main.js"></script>
