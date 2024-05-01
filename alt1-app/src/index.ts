@@ -12,9 +12,9 @@ const CAPTURE_INTERVAL_MS = 2000;
 const logElement = document.getElementById("log");
 const chatBoxReader = new ChatBoxReader();
 
-function writeLog(message: string | ChatLine, color?: string) {
+function writeLog(message: string | ChatLine, color: string = "white") {
   if (typeof message === "string") {
-    logElement.innerHTML += `<br/><span style="color: ${color ?? "black"}">${message}</span>`;
+    logElement.innerHTML += `<br/><span style="color: ${color}">${message}</span>`;
     return;
   }
 
@@ -24,11 +24,11 @@ function writeLog(message: string | ChatLine, color?: string) {
   });
 }
 
-function writeError(message: string | ChatLine, color?: string) {
+function writeError(message: string | ChatLine) {
   writeLog("ERROR: " + message, "red");
 }
 
-function writeWarning(message: string | ChatLine, color?: string) {
+function writeWarning(message: string | ChatLine) {
   writeLog("WARN: " + message, "orange");
 }
 
@@ -79,24 +79,18 @@ function drawChatBoxToDebugCanvas(img: ImgRef, chatBox: { boxes: Chatbox[] }) {
 function processChatBox(img: a1lib.ImgRef) {
   const chatBoxImg = chatBoxReader.find(img);
   if (!chatBoxImg) {
+    writeWarning("No chatBoxImg");
     return;
   }
   drawChatBoxToDebugCanvas(img, chatBoxImg);
 
   const chatLines = chatBoxReader.read(img);
-  if (!chatLines) {
+  if (!chatLines?.length) {
+    writeWarning("No chatLines");
     return;
   }
 
   processChatLines(chatLines);
-}
-
-export function showFilePicker() {
-  try {
-    a1lib.PasteInput.fileDialog().showPicker();
-  } catch (e) {
-    writeError(e);
-  }
 }
 
 if (window.alt1) {
@@ -114,6 +108,7 @@ if (window.alt1) {
 
 a1lib.PasteInput.listen(
   (img) => {
+    document.getElementsByClassName("forcehidden")[0].innerHTML = "";
     processChatBox(img);
   },
   (err, errid) => writeError(`${errid} ${err}`),
