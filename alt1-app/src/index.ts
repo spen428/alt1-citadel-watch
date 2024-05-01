@@ -8,18 +8,11 @@ import axios from "axios";
 
 const CAPTURE_INTERVAL_MS = 2000;
 
-const logOutputElement = document.getElementById("output");
+const logElement = document.getElementById("log");
 const chatBoxReader = new ChatBoxReader();
 
 function writeLog(message: string) {
-  logOutputElement.insertAdjacentHTML("beforeend", `<div>${message}</div>`);
-}
-
-function writeError(message: string) {
-  logOutputElement.insertAdjacentHTML(
-    "beforeend",
-    `<div style="color: red;">${message}</div>`,
-  );
+  logElement.innerText += "\n" + message;
 }
 
 function captureAndProcessChatBox() {
@@ -37,13 +30,16 @@ function forwardLineToDiscord(line: string) {
   const headers = { "Content-Type": "application/json" };
   axios
     .post(url, body, { headers })
-    .catch((error) => writeError(`Error forwarding message: ${error}`));
+    .catch((error) => writeLog(`ERROR: Error forwarding message: ${error}`));
 }
 
 function processChatLines(chatLines: ChatLine[]) {
   chatLines
     .filter((line) => line.text.includes("[Clan System]"))
-    .forEach((line) => forwardLineToDiscord(line.text));
+    .forEach((line) => {
+      writeLog(line.text);
+      forwardLineToDiscord(line.text);
+    });
 }
 
 function processChatBox(img: a1lib.ImgRef) {
@@ -61,7 +57,11 @@ function processChatBox(img: a1lib.ImgRef) {
 }
 
 export function showFilePicker() {
-  a1lib.PasteInput.fileDialog().showPicker();
+  try {
+    a1lib.PasteInput.fileDialog().showPicker();
+  } catch (e) {
+    writeLog("ERROR: " + e);
+  }
 }
 
 if (window.alt1) {
@@ -69,20 +69,24 @@ if (window.alt1) {
   setInterval(() => captureAndProcessChatBox(), CAPTURE_INTERVAL_MS);
 } else {
   const addAppUrl = `alt1://addapp/${new URL("./appconfig.json", document.location.href).href}`;
-  writeLog(
-    `Alt1 not detected, click <a href='${addAppUrl}'>here</a> to add this app to Alt1`,
-  );
+  document
+    .getElementById("output")
+    .insertAdjacentHTML(
+      "beforeend",
+      `Alt1 not detected, click <a href='${addAppUrl}'>here</a> to add this app to Alt1`,
+    );
 }
 
 a1lib.PasteInput.listen(
   (img) => {
     processChatBox(img);
   },
-  (err, errid) => {
-    writeError(errid + " " + err);
-  },
+  (err, errid) => writeLog(`ERROR: ${errid} ${err}`),
 );
 
-writeLog(
-  `<div onclick='TestApp.showFilePicker()'>Click to select a test image</div>`,
-);
+document
+  .getElementById("output")
+  .insertAdjacentHTML(
+    "beforeend",
+    `<div onclick='TestApp.showFilePicker()'>Click to select a test image</div>`,
+  );
