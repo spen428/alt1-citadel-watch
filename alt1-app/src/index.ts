@@ -12,8 +12,24 @@ const CAPTURE_INTERVAL_MS = 2000;
 const logElement = document.getElementById("log");
 const chatBoxReader = new ChatBoxReader();
 
-function writeLog(message: string) {
-  logElement.innerText += "\n" + message;
+function writeLog(message: string | ChatLine, color?: string) {
+  if (typeof message === "string") {
+    logElement.innerHTML += `<br/><span style="color: ${color ?? "black"}">${message}</span>`;
+    return;
+  }
+
+  logElement.innerHTML += "<br/>";
+  message.fragments.forEach((fragment) => {
+    logElement.innerHTML += `<span style="color: rgb(${fragment.color.join(",")})">${fragment.text}</span>`;
+  });
+}
+
+function writeError(message: string | ChatLine, color?: string) {
+  writeLog("ERROR: " + message, "red");
+}
+
+function writeWarning(message: string | ChatLine, color?: string) {
+  writeLog("WARN: " + message, "orange");
 }
 
 function captureAndProcessChatBox() {
@@ -31,26 +47,26 @@ function forwardLineToDiscord(line: string) {
   const headers = { "Content-Type": "application/json" };
   axios
     .post(url, body, { headers })
-    .catch((error) => writeLog(`ERROR: Error forwarding message: ${error}`));
+    .catch((error) => writeError(`Error forwarding message: ${error}`));
 }
 
 function processChatLines(chatLines: ChatLine[]) {
   chatLines
     .filter((line) => line.text.includes("[Clan System]"))
     .forEach((line) => {
-      writeLog(line.text);
+      writeLog(line);
       forwardLineToDiscord(line.text);
     });
 }
 
 function drawChatBoxToDebugCanvas(img: ImgRef, chatBox: { boxes: Chatbox[] }) {
   if (chatBox.boxes.length < 1) {
-    writeLog("ERROR: Cannot draw chat box with no ChatBox elements");
+    writeError("Cannot draw chat box with no ChatBox elements");
     return;
   }
 
   if (chatBox.boxes.length > 1) {
-    writeLog("WARN: More than one ChatBox element");
+    writeWarning("More than one ChatBox element");
   }
 
   const rect = chatBox.boxes[0].rect;
@@ -79,7 +95,7 @@ export function showFilePicker() {
   try {
     a1lib.PasteInput.fileDialog().showPicker();
   } catch (e) {
-    writeLog("ERROR: " + e);
+    writeError(e);
   }
 }
 
@@ -100,5 +116,5 @@ a1lib.PasteInput.listen(
   (img) => {
     processChatBox(img);
   },
-  (err, errid) => writeLog(`ERROR: ${errid} ${err}`),
+  (err, errid) => writeError(`${errid} ${err}`),
 );
