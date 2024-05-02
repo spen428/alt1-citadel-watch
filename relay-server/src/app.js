@@ -29,10 +29,11 @@ app.post("/send-message", async (req, res) => {
 
   try {
     await axios.post(url, body, { headers });
-    res.status(200).send("Message sent successfully!");
+    console.log(body.content);
+    res.status(200).send();
   } catch (error) {
     console.error("Error sending message:", error.response.data);
-    res.status(500).send("Error sending message.");
+    res.status(500).send();
   }
 });
 
