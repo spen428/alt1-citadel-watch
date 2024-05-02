@@ -14,13 +14,18 @@ if (!secrets || !secrets.channelId || !secrets.discordBotToken) {
   throw new Error("Missing secrets.json");
 }
 
+const url = `https://discord.com/api/v9/channels/${secrets.channelId}/messages`;
+const headers = {
+  Authorization: `Bot ${secrets.discordBotToken}`,
+  "Content-Type": "application/json",
+};
+
 app.post("/send-message", async (req, res) => {
-  const url = `https://discord.com/api/v9/channels/${secrets.channelId}/messages`;
-  const body = { content: req.body.messageContent };
-  const headers = {
-    Authorization: `Bot ${secrets.discordBotToken}`,
-    "Content-Type": "application/json",
-  };
+  const timestamp = req.body.timestamp
+    ? `<t:${req.body.timestamp}:f>`
+    : "Unknown time";
+
+  const body = { content: `[${timestamp}] ${req.body.text}` };
 
   try {
     await axios.post(url, body, { headers });
