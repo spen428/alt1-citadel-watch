@@ -21,13 +21,9 @@ class DiscordService {
   }
 
   private getChatLineWithTimestamp(line: ChatLine): ChatLineWithTimestamp {
-    if (
-      line.fragments[0].text === "[" &&
-      isTimeString(line.fragments[1].text)
-    ) {
-      const timestamp = timeStringToUnixTimestampSeconds(
-        line.fragments[1].text,
-      );
+    const possibleTimeString = line.fragments[1].text.replace(";", ":");
+    if (line.fragments[0].text === "[" && isTimeString(possibleTimeString)) {
+      const timestamp = timeStringToUnixTimestampSeconds(possibleTimeString);
       const textWithoutTimestamp = line.text.substring(11);
       return { text: textWithoutTimestamp, timestamp };
     }
