@@ -37,3 +37,16 @@ jobs:
         path: alt1-app/dist
         if-no-files-found: error
         overwrite: true
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4.0.5
+        with:
+          artifact_name: runeapp
