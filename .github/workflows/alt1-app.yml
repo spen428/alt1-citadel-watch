@@ -34,12 +34,14 @@ jobs:
         cd alt1-app
         pnpm install
         pnpm run build
+        cd dist
+        tar -czvf ../../runeapp.tar.gz *
 
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v4.3.3
       with:
         name: runeapp
-        path: alt1-app/dist
+        path: runeapp.tar.gz
         if-no-files-found: error
         overwrite: true
 
@@ -51,8 +53,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v5.0.0
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4.0.5
         with:
           artifact_name: runeapp
