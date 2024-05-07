@@ -38,7 +38,7 @@ jobs:
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v4.3.3
       with:
-        name: runeapp.zip
+        name: runeapp
         path: alt1-app/dist
         if-no-files-found: error
         overwrite: true
@@ -55,4 +55,4 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4.0.5
         with:
-          artifact_name: runeapp.zip
+          artifact_name: runeapp
